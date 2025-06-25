@@ -1,0 +1,505 @@
+# Manga/Novel Reader Platform - Product Requirements Document
+
+## Overview
+A comprehensive digital reading platform that solves the content discovery and monetization challenge for manga, manhwa, manhua, and novel publishers. The platform provides readers with a seamless reading experience while enabling content creators to monetize premium chapters through a coin-based system.
+
+**Target Users:**
+- Digital manga/novel readers seeking organized content access
+- Content creators needing monetization tools
+- Publishers looking for distribution platforms
+
+**Value Proposition:**
+- Unified platform for multiple content types
+- Fair monetization model for creators
+- Enhanced reading experience with progress tracking
+- Mobile-optimized interface for on-the-go reading
+
+## Core Features
+
+### 1. Multi-Content Reading System
+**What it does:** Supports manga (image-based) and novel (text-based) content with specialized readers
+**Why it's important:** Different content types require different reading interfaces and optimization
+**How it works:** Adaptive reader interface that switches between image pagination and text scrolling
+
+### 2. Coin-Based Monetization
+**What it does:** Users purchase coins to unlock premium chapters
+**Why it's important:** Provides sustainable revenue model for content creators
+**How it works:** Tiered coin packages with bonus systems, secure payment processing
+
+### 3. Progress Tracking & Bookmarks
+**What it does:** Saves reading position and allows users to bookmark favorite series
+**Why it's important:** Enhances user retention and reading continuity
+**How it works:** Automatic progress saving with manual bookmark management
+
+### 4. Content Discovery
+**What it does:** Featured content, category browsing, and search functionality
+**Why it's important:** Helps users find new content and increases engagement
+**How it works:** Algorithm-based recommendations with manual curation options
+
+## User Experience
+
+### User Personas
+**Primary Persona - Casual Reader (Maya, 24)**
+- Reads 2-3 series regularly
+- Prefers free content but occasionally purchases premium
+- Uses mobile device 80% of the time
+- Values easy navigation and reading progress saving
+
+**Secondary Persona - Avid Consumer (David, 19)**
+- Reads 10+ series actively
+- Frequently purchases coin packages
+- Uses both mobile and desktop
+- Wants advanced features like reading statistics
+
+### Key User Flows
+1. **New User Onboarding:** Registration → Email verification → Browse featured content → First read
+2. **Content Discovery:** Homepage browse → Category filter → Series detail → Chapter selection → Reading
+3. **Premium Purchase:** Find premium chapter → View coin packages → Purchase coins → Unlock chapter → Read
+4. **Return Reader:** Login → Dashboard → Continue reading → Update progress
+
+### UI/UX Considerations
+- Mobile-first responsive design
+- Touch-friendly controls for manga reader
+- Quick access to bookmarks and history
+- Clear coin balance and pricing display
+- Minimal loading states for content switching
+
+## Business Logic Architecture
+
+### Core Business Rules
+
+#### User Management Logic
+- **Registration:** Username must be unique, email verification required
+- **Authentication:** Session-based with remember token support
+- **Profile:** Users can update profile info and upload avatars
+- **Coin Balance:** Real-time balance tracking with transaction history
+
+#### Content Access Logic
+- **Free Content:** Accessible to all registered users
+- **Premium Content:** Requires coin purchase for access
+- **Access Validation:** Chapter access checked on every read request
+- **Content Serving:** Secure file serving based on user permissions
+
+#### Monetization Business Rules
+- **Coin Packages:** Tiered pricing with bonus coin incentives
+- **Chapter Pricing:** Flexible pricing per chapter (0 = free)
+- **Purchase Logic:** Atomic transactions ensuring data consistency
+- **Access Expiry:** Optional time-limited access for premium content
+
+#### Reading Progress Logic
+- **History Tracking:** Automatic save of reading position
+- **Bookmark System:** User-managed favorite series collection
+- **Progress Continuation:** Resume reading from last position
+- **Completion Tracking:** Mark chapters as fully read
+
+### Business Workflows
+
+#### User Registration Flow
+1. User submits registration form
+2. Validate username/email uniqueness
+3. Create user account with default coin balance (0)
+4. Send email verification
+5. Redirect to dashboard after verification
+
+#### Chapter Purchase Flow
+1. User selects premium chapter
+2. Check user coin balance sufficiency
+3. Display purchase confirmation
+4. Process coin deduction atomically
+5. Create purchase record and transaction log
+6. Grant chapter access immediately
+
+#### Reading Session Flow
+1. Validate user access to chapter
+2. Serve content based on content type
+3. Track reading progress automatically
+4. Update reading history on chapter completion
+5. Increment series view counter
+
+### Service Layer Architecture
+
+#### UserService
+- `registerUser(array $userData): User`
+- `updateProfile(User $user, array $data): User`
+- `addCoins(User $user, int $amount, string $reference): CoinTransaction`
+- `deductCoins(User $user, int $amount, string $reference): CoinTransaction`
+
+#### ContentService
+- `getSeriesByType(string $type): Collection`
+- `getFeaturedSeries(): Collection`
+- `searchSeries(string $query): Collection`
+- `getChapterContent(Chapter $chapter): array`
+
+#### PurchaseService
+- `purchaseChapter(User $user, Chapter $chapter): ChapterPurchase`
+- `validateChapterAccess(User $user, Chapter $chapter): bool`
+- `processCoinPackagePurchase(User $user, CoinPackage $package): PaymentOrder`
+
+#### ReadingService
+- `updateReadingProgress(User $user, Chapter $chapter, array $progress): ReadingHistory`
+- `getReadingHistory(User $user): Collection`
+- `addBookmark(User $user, Series $series): UserBookmark`
+- `removeBookmark(User $user, Series $series): bool`
+
+## Technical Architecture
+
+### System Components
+```
+Presentation Layer (Blade Templates)
+├── Layout System (app.blade.php, navbar component)
+├── Authentication Pages (login, register, profile)
+├── Content Discovery (homepage, series listing)
+├── Reading Interfaces (manga/novel readers)
+├── User Management (dashboard, bookmarks, history)
+└── Monetization (coin packages, transactions)
+
+Application Layer (Laravel Controllers & Services)
+├── AuthController (registration, login, profile)
+├── HomeController (homepage, featured content)
+├── SeriesController (series listing, details)
+├── ChapterController (chapter access, reading)
+├── UserController (dashboard, bookmarks, history)
+├── CoinController (packages, purchases, transactions)
+└── PaymentController (payment processing, callbacks)
+
+Business Logic Layer (Services)
+├── UserService (user management, coin operations)
+├── ContentService (content discovery, serving)
+├── PurchaseService (chapter purchases, access validation)
+├── ReadingService (progress tracking, bookmarks)
+└── PaymentService (payment processing, order management)
+
+Data Access Layer (Eloquent Models)
+├── User (authentication, coin balance)
+├── ContentType (manga, manhwa, manhua, novel)
+├── Series (content metadata)
+├── Chapter (content files, pricing)
+├── ChapterPurchase (access records)
+├── CoinTransaction (financial records)
+├── CoinPackage (monetization packages)
+├── PaymentOrder (payment processing)
+├── UserBookmark (user preferences)
+└── ReadingHistory (progress tracking)
+
+Infrastructure Layer
+├── MySQL Database (10 core tables)
+├── File Storage (content files)
+├── Payment Gateway (Midtrans/Xendit)
+├── Email Service (verification, notifications)
+└── Cache Layer (Redis recommended)
+```
+
+### Database Schema Structure
+```
+database/migrations/
+├── 2024_01_01_000001_create_users_table.php
+│   └── Core user data with coin_balance field
+├── 2024_01_01_000002_create_content_types_table.php
+│   └── Content classification (manga, novel, etc.)
+├── 2024_01_01_000003_create_series_table.php
+│   └── Series metadata with UUID slugs
+├── 2024_01_01_000004_create_chapters_table.php
+│   └── Chapter data with content paths and pricing
+├── 2024_01_01_000005_create_chapter_purchases_table.php
+│   └── User chapter access records
+├── 2024_01_01_000006_create_coin_transactions_table.php
+│   └── Financial transaction audit trail
+├── 2024_01_01_000007_create_coin_packages_table.php
+│   └── Monetization package definitions
+├── 2024_01_01_000008_create_payment_orders_table.php
+│   └── Payment processing records
+├── 2024_01_01_000009_create_user_bookmarks_table.php
+│   └── User favorite series tracking
+└── 2024_01_01_000010_create_reading_history_table.php
+    └── Reading progress and completion tracking
+```
+
+### Data Relationships & Constraints
+- **Users** have many BookMarks, ReadingHistory, CoinTransactions, ChapterPurchases
+- **Series** belong to ContentType, have many Chapters, BookMarks, ReadingHistory
+- **Chapters** belong to Series, have many ChapterPurchases, ReadingHistory
+- **ChapterPurchases** create access bridge between Users and Chapters
+- **CoinTransactions** track all coin movements with balance snapshots
+- **PaymentOrders** link CoinPackages to Users through payment processing
+
+### APIs and Integrations
+- **Payment Gateway:** Midtrans/Xendit for coin package purchases
+- **File Storage:** Local/S3-compatible for content files
+- **Email Service:** SMTP/SendGrid for verification and notifications
+- **Cache Layer:** Redis for session data and frequently accessed content
+- **CDN Integration:** Optional for content delivery optimization
+
+### Infrastructure Requirements
+- **Web Server:** Apache/Nginx with PHP-FPM
+- **Runtime:** PHP 8.2+ with Laravel 12
+- **Database:** MySQL 8.0+ or PostgreSQL 13+
+- **Storage:** Local filesystem or S3-compatible storage
+- **Security:** SSL certificate for secure payments
+- **Monitoring:** Application performance monitoring recommended
+
+## Development Roadmap
+
+### Phase 1: Foundation MVP (Core Infrastructure)
+**Scope:** Basic reading platform with essential features
+**Business Logic Implementation:**
+- User registration and authentication workflows
+- Basic content access validation
+- File serving logic for different content types
+- Session management and security
+
+**Technical Deliverables:**
+- Complete database schema (10 migrations)
+- Eloquent models with relationships
+- Laravel Breeze authentication setup
+- Basic service layer architecture
+- File storage system configuration
+
+**Frontend Deliverables:**
+- Layout template (app.blade.php)
+- Navigation component (navbar.blade.php)
+- Authentication pages (login, register)
+- Basic homepage with series grid
+- Simple series detail page
+
+**Key Business Rules:**
+- Free content accessible to all registered users
+- User accounts created with zero coin balance
+- Series organized by content type (manga/novel)
+- Basic reading access validation
+
+### Phase 2: Enhanced Reading Experience
+**Scope:** Complete reading functionality with user features
+**Business Logic Implementation:**
+- Reading progress tracking algorithms
+- Bookmark management workflows
+- Content serving optimization
+- User dashboard data aggregation
+
+**Technical Deliverables:**
+- ReadingService with progress tracking
+- Enhanced content serving logic
+- User dashboard with reading statistics
+- Responsive reader interfaces
+
+**Frontend Deliverables:**
+- Advanced manga reader (manga-reader.blade.php)
+- Novel reader with text controls (novel-reader.blade.php)
+- User dashboard (dashboard.blade.php)
+- Bookmarks management (bookmarks.blade.php)
+- Reading history page (history.blade.php)
+
+**Key Business Rules:**
+- Automatic reading progress saves
+- Bookmark limits per user (if applicable)
+- Reading session timeout handling
+- Chapter completion tracking
+
+### Phase 3: Monetization System
+**Scope:** Complete coin-based payment system
+**Business Logic Implementation:**
+- Coin transaction processing
+- Chapter purchase validation
+- Payment gateway integration
+- Access control enforcement
+
+**Technical Deliverables:**
+- PurchaseService with atomic transactions
+- PaymentService for gateway integration
+- Coin balance management system
+- Access control middleware
+
+**Frontend Deliverables:**
+- Coin packages page (packages.blade.php)
+- Transaction history (transactions.blade.php)
+- Purchase confirmation flows
+- Premium chapter access gates
+
+**Key Business Rules:**
+- Atomic coin transactions (all-or-nothing)
+- Chapter access immediately after purchase
+- Transaction audit trail maintenance
+- Payment order lifecycle management
+
+### Phase 4: Content Discovery & Optimization
+**Scope:** Advanced features for content discovery and performance
+**Business Logic Implementation:**
+- Search and filtering algorithms
+- Content recommendation logic
+- Performance optimization strategies
+- Analytics and reporting
+
+**Technical Deliverables:**
+- ContentService with advanced search
+- Caching layer implementation
+- Performance monitoring setup
+- SEO optimization
+
+**Frontend Deliverables:**
+- Enhanced series listing (index.blade.php)
+- Search and filter interfaces
+- Performance-optimized readers
+- Mobile-responsive improvements
+
+**Key Business Rules:**
+- Search relevance algorithms
+- Content recommendation scoring
+- View count and rating calculations
+- Featured content selection criteria
+
+## Required Blade Template Files (15 Files)
+
+### Layout & Components (2 files)
+- `resources/views/layouts/app.blade.php` - Main layout with navigation, footer, and common assets
+- `resources/views/components/navbar.blade.php` - Responsive navigation with user menu and coin balance
+
+### Authentication (3 files)
+- `resources/views/auth/login.blade.php` - Login form with remember me option
+- `resources/views/auth/register.blade.php` - Registration with username and email validation
+- `resources/views/profile/edit.blade.php` - Profile management with avatar upload and password change
+
+### Homepage & Discovery (2 files)
+- `resources/views/home.blade.php` - Featured series carousel, recent updates, popular content
+- `resources/views/series/index.blade.php` - Filterable series grid with search and category filters
+
+### Series & Chapter (3 files)
+- `resources/views/series/show.blade.php` - Series details, chapter list, bookmark button
+- `resources/views/chapter/manga-reader.blade.php` - Image-based reader with page navigation
+- `resources/views/chapter/novel-reader.blade.php` - Text reader with customizable settings
+
+### User Features (3 files)
+- `resources/views/user/dashboard.blade.php` - Reading overview, recent activity, quick access
+- `resources/views/user/bookmarks.blade.php` - Bookmarked series grid with quick access
+- `resources/views/user/history.blade.php` - Reading history with continue reading options
+
+### Monetization (2 files)
+- `resources/views/coins/packages.blade.php` - Coin package selection with payment options
+- `resources/views/coins/transactions.blade.php` - Transaction history with filtering and search
+
+## Logical Dependency Chain
+
+### Foundation First (Phase 1 Priority)
+1. **Database Schema & Models** - Complete data foundation with all 10 migrations
+2. **Business Logic Services** - Core service layer for user, content, and purchase operations
+3. **Authentication System** - Laravel Breeze integration with custom user fields
+4. **Basic Content Serving** - File storage and serving logic for manga/novel content
+
+### Quick Wins for Visible Progress
+1. **Homepage with Series Grid** - Immediate visual demonstration of content organization
+2. **Series Detail Pages** - Show complete content structure and metadata
+3. **Basic Readers** - Functional manga image viewer and novel text reader
+4. **User Registration Flow** - Complete user onboarding experience
+
+### Atomic Feature Development Strategy
+1. **Reader Components** - Develop manga and novel readers as independent modules
+2. **User Management Features** - Build dashboard, bookmarks, and history separately
+3. **Monetization System** - Implement coin management as isolated service layer
+4. **Content Discovery** - Add search and filtering as enhancement layer
+
+### Business Logic Implementation Order
+1. **User Service** - Authentication, profile management, coin balance operations
+2. **Content Service** - Series discovery, chapter access, file serving
+3. **Reading Service** - Progress tracking, bookmarks, history management
+4. **Purchase Service** - Chapter purchases, access validation, coin transactions
+5. **Payment Service** - Gateway integration, order processing, payment callbacks
+
+### Development Dependencies
+**Phase 1 Dependencies:**
+- Database migrations → Models → Services → Controllers → Views
+- Authentication setup → User management → Content access
+- File storage → Content serving → Reader interfaces
+
+**Phase 2 Dependencies:**
+- User Service → Reading Service → Progress tracking
+- Content Service → Enhanced readers → User dashboard
+- Basic readers → Advanced reading features
+
+**Phase 3 Dependencies:**
+- User Service coin methods → Purchase Service → Payment integration
+- Chapter access logic → Monetization frontend → Payment processing
+
+**Phase 4 Dependencies:**
+- Content Service → Search functionality → Discovery features
+- Performance baseline → Optimization implementation → Analytics
+
+## Risks and Mitigations
+
+### Business Logic Risks
+**Risk:** Complex coin transaction handling with race conditions
+**Mitigation:** Implement database transactions and pessimistic locking for coin operations
+
+**Risk:** Chapter access validation complexity across different content types
+**Mitigation:** Create unified access control service with clear business rules
+
+**Risk:** Reading progress tracking accuracy across devices
+**Mitigation:** Implement server-side progress validation with conflict resolution
+
+### Technical Implementation Risks
+**Risk:** File serving performance for large manga collections
+**Mitigation:** Implement progressive loading and CDN integration strategy
+
+**Risk:** Payment gateway integration complexity and error handling
+**Mitigation:** Start with single gateway (Midtrans), implement comprehensive error handling
+
+**Risk:** Database performance with large content catalogs
+**Mitigation:** Implement proper indexing strategy and query optimization from Phase 1
+
+### MVP Scope Risks
+**Risk:** Over-engineering business logic in initial phases
+**Mitigation:** Focus on core user flows: register → browse → read → purchase
+
+**Risk:** Incomplete monetization logic affecting user experience
+**Mitigation:** Implement complete coin system in Phase 3 before partial features
+
+**Risk:** Complex reading progress logic delaying core features
+**Mitigation:** Start with basic progress tracking, enhance with advanced features later
+
+### Business Model Risks
+**Risk:** Coin pricing strategy not aligned with user behavior
+**Mitigation:** Implement flexible pricing system with easy configuration
+
+**Risk:** Content access rules too restrictive or too lenient
+**Mitigation:** Create configurable access control with clear business rule definitions
+
+**Risk:** User engagement dropping due to complex monetization
+**Mitigation:** Ensure free content availability and transparent pricing model
+
+## Appendix
+
+### Technical Specifications
+- **PHP Version:** 8.2+
+- **Laravel Version:** 12.x
+- **Database:** MySQL 8.0+ or PostgreSQL 13+
+- **Authentication:** Laravel Breeze
+- **File Storage:** Local filesystem or S3-compatible
+- **Payment Gateways:** Midtrans (primary), Xendit (secondary)
+
+### Performance Requirements
+- Page load time: < 3 seconds
+- Image loading: Progressive/lazy loading
+- Database queries: < 100ms average
+- Concurrent users: 100+ simultaneous readers
+
+### Security Considerations
+- HTTPS enforcement for all pages
+- CSRF protection on all forms
+- Rate limiting on authentication endpoints
+- Secure file serving for premium content
+- Input validation and sanitization
+
+### Content Storage Strategy
+```
+storage/
+├── app/
+│   ├── public/
+│   │   ├── covers/          # Series cover images
+│   │   ├── avatars/         # User profile pictures
+│   │   └── content/
+│   │       ├── manga/       # Chapter image folders
+│   │       │   └── [series-id]/
+│   │       │       └── [chapter-id]/
+│   │       │           ├── 001.jpg
+│   │       │           └── 002.jpg
+│   │       └── novels/      # Novel text files
+│   │           └── [series-id]/
+│   │               └── [chapter-id].txt
+```
