@@ -38,14 +38,11 @@ class CoinPackageResource extends Resource
                             ->label('Coin Amount')
                             ->required()
                             ->numeric()
-                            ->minValue(1)
                             ->step(1),
                         Forms\Components\TextInput::make('price')
                             ->required()
                             ->numeric()
-                            ->prefix('$')
-                            ->minValue(0.01)
-                            ->step(0.01),
+                            ->prefix('Rp'),
                     ])->columns(3),
                 
                 Forms\Components\Section::make('Package Settings')
@@ -79,10 +76,10 @@ class CoinPackageResource extends Resource
                 Tables\Columns\TextColumn::make('coin_amount')
                     ->badge()
                     ->color('warning')
-                    ->icon('heroicon-o-coin')
+                    ->icon('heroicon-o-currency-dollar')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('price')
-                    ->money('USD')
+                    ->money('IDR')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('value_ratio')
                     ->label('Value (Coins/$)')

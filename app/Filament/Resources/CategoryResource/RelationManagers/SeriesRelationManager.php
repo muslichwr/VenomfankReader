@@ -87,7 +87,9 @@ class SeriesRelationManager extends RelationManager
                 Tables\Actions\CreateAction::make(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                ->url(fn ($record) => route('filament.admin.resources.series.edit', ['record' => $record->id]))
+                ->icon('heroicon-o-pencil-square'),
                 Tables\Actions\DetachAction::make(),
             ])
             ->bulkActions([

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
+use App\Helpers\TransactionHelper;
 
 class Transaction extends Model
 {
@@ -22,9 +23,7 @@ class Transaction extends Model
     public const STATUS_REFUNDED = 'refunded';
     
     // Payment method constants
-    public const METHOD_PAYPAL = 'paypal';
-    public const METHOD_STRIPE = 'stripe';
-    public const METHOD_BANK_TRANSFER = 'bank_transfer';
+    public const METHOD_MIDTRANS = 'midtrans';
     public const METHOD_ADMIN_ADJUSTMENT = 'admin_adjustment';
 
     protected $fillable = [
@@ -34,6 +33,7 @@ class Transaction extends Model
         'amount_paid',
         'payment_status',
         'payment_method',
+        'payment_code',
     ];
 
     protected $casts = [
@@ -49,8 +49,14 @@ class Transaction extends Model
         parent::boot();
 
         static::creating(function ($model) {
+            // Generate UUID if not set
             if (empty($model->{$model->getKeyName()})) {
                 $model->{$model->getKeyName()} = (string) Str::uuid();
+            }
+            
+            // Generate payment code if not set
+            if (empty($model->payment_code)) {
+                $model->payment_code = TransactionHelper::generatePaymentCode();
             }
         });
     }
@@ -142,5 +148,32 @@ class Transaction extends Model
     public function isFailed(): bool
     {
         return $this->payment_status === self::STATUS_FAILED;
+    }
+
+    /**
+     * Format the payment code for display.
+     *
+     * @return string|null
+     */
+    public function getFormattedPaymentCodeAttribute(): ?string
+    {
+        if (!$this->payment_code) {
+            return null;
+        }
+
+        return TransactionHelper::formatPaymentCode($this->payment_code);
+    }
+    
+    /**
+     * Generate a new payment code for this transaction.
+     *
+     * @return string
+     */
+    public function generatePaymentCode(): string
+    {
+        $this->payment_code = TransactionHelper::generatePaymentCode();
+        $this->save();
+        
+        return $this->payment_code;
     }
 }

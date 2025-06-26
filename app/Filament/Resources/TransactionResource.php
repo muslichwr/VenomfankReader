@@ -5,11 +5,14 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\TransactionResource\Pages;
 use App\Filament\Resources\TransactionResource\RelationManagers;
 use App\Models\Transaction;
+use App\Helpers\TransactionHelper;
+use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -35,32 +38,77 @@ class TransactionResource extends Resource
                 Forms\Components\Section::make('Transaction Details')
                     ->schema([
                         Forms\Components\Select::make('user_id')
-                            ->relationship('user', 'name')
-                            ->required()
-                            ->searchable(),
+                        ->relationship('user', 'email')
+                        ->searchable()
+                        ->preload()
+                        ->required()
+                        ->live()
+                        ->afterStateUpdated(function ($state, callable $set) {
+                            $user = User::find($state);
+                            if ($user) {
+                                $set('name', $user->name);
+                                $set('email', $user->email);
+                            }
+                        })
+                        ->afterStateHydrated(function (callable $set, $state) {
+                            $userId = $state;
+                            if ($userId) {
+                                $user = User::find($userId);
+                                if ($user) {
+                                    $set('name', $user->name);
+                                    $set('email', $user->email);
+                                }
+                            }
+                        }),
+
+                        Forms\Components\TextInput::make('name')
+                        ->required()
+                        ->maxLength(255)
+                        ->readOnly(),
+
+                        Forms\Components\TextInput::make('email')
+                        ->required()
+                        ->maxLength(255)
+                        ->readOnly(),
+
                         Forms\Components\Select::make('coin_package_id')
                             ->relationship('coinPackage', 'name')
-                            ->required(),
+                            ->required()
+                            ->live()
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                if ($state) {
+                                    $coinPackage = \App\Models\CoinPackage::find($state);
+                                    if ($coinPackage) {
+                                        $set('coins_received', $coinPackage->coin_amount);
+                                        $set('amount_paid', $coinPackage->price);
+                                    }
+                                }
+                            })
+                            ->afterStateHydrated(function (callable $set, $state) {
+                                if ($state) {
+                                    $coinPackage = \App\Models\CoinPackage::find($state);
+                                    if ($coinPackage) {
+                                        $set('coins_received', $coinPackage->coin_amount);
+                                        $set('amount_paid', $coinPackage->price);
+                                    }
+                                }
+                            }),
                         Forms\Components\TextInput::make('coins_received')
                             ->required()
                             ->numeric()
-                            ->minValue(1)
-                            ->default(0),
+                            ->readOnly(),
                         Forms\Components\TextInput::make('amount_paid')
                             ->required()
                             ->numeric()
-                            ->prefix('$')
-                            ->minValue(0)
-                            ->default(0),
+                            ->prefix('Rp')
+                            ->readOnly(),
                     ])->columns(2),
                     
                 Forms\Components\Section::make('Payment Status')
                     ->schema([
                         Forms\Components\Select::make('payment_method')
                             ->options([
-                                Transaction::METHOD_PAYPAL => 'PayPal',
-                                Transaction::METHOD_STRIPE => 'Stripe',
-                                Transaction::METHOD_BANK_TRANSFER => 'Bank Transfer',
+                                Transaction::METHOD_MIDTRANS => 'Midtrans',
                                 Transaction::METHOD_ADMIN_ADJUSTMENT => 'Admin Adjustment',
                             ])
                             ->default(Transaction::METHOD_ADMIN_ADJUSTMENT)
@@ -74,6 +122,17 @@ class TransactionResource extends Resource
                             ])
                             ->default(Transaction::STATUS_PENDING)
                             ->required(),
+                        Forms\Components\TextInput::make('payment_code')
+                            ->label('Payment Code')
+                            ->helperText('A unique code for transaction identification')
+                            ->placeholder('Auto-generated')
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->afterStateHydrated(function (Forms\Components\TextInput $component, $state) {
+                                if ($state) {
+                                    $component->state(TransactionHelper::formatPaymentCode($state));
+                                }
+                            }),
                     ])->columns(2),
             ]);
     }
@@ -86,6 +145,14 @@ class TransactionResource extends Resource
                     ->label('ID')
                     ->searchable()
                     ->toggleable(),
+                Tables\Columns\TextColumn::make('payment_code')
+                    ->label('Payment Code')
+                    ->formatStateUsing(fn ($state) => $state ? TransactionHelper::formatPaymentCode($state) : '-')
+                    ->searchable()
+                    ->sortable()
+                    ->copyable()
+                    ->copyMessage('Payment code copied')
+                    ->copyable('Copy payment code'),
                 Tables\Columns\TextColumn::make('user.name')
                     ->searchable()
                     ->sortable(),
@@ -95,18 +162,16 @@ class TransactionResource extends Resource
                 Tables\Columns\TextColumn::make('coins_received')
                     ->badge()
                     ->color('warning')
-                    ->icon('heroicon-o-coin')
+                    ->icon('heroicon-o-currency-dollar')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('amount_paid')
-                    ->money('USD')
+                    ->money('IDR')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('payment_method')
                     ->badge()
                     ->color('gray')
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        Transaction::METHOD_PAYPAL => 'PayPal',
-                        Transaction::METHOD_STRIPE => 'Stripe',
-                        Transaction::METHOD_BANK_TRANSFER => 'Bank Transfer',
+                        Transaction::METHOD_MIDTRANS => 'Midtrans',
                         Transaction::METHOD_ADMIN_ADJUSTMENT => 'Admin Adjustment',
                         default => $state,
                     }),
@@ -136,11 +201,21 @@ class TransactionResource extends Resource
                     ]),
                 Tables\Filters\SelectFilter::make('payment_method')
                     ->options([
-                        Transaction::METHOD_PAYPAL => 'PayPal',
-                        Transaction::METHOD_STRIPE => 'Stripe',
-                        Transaction::METHOD_BANK_TRANSFER => 'Bank Transfer',
+                        Transaction::METHOD_MIDTRANS => 'Midtrans',
                         Transaction::METHOD_ADMIN_ADJUSTMENT => 'Admin Adjustment',
                     ]),
+                Tables\Filters\Filter::make('payment_code')
+                    ->form([
+                        Forms\Components\TextInput::make('payment_code')
+                            ->label('Payment Code')
+                            ->placeholder('Enter payment code'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['payment_code'],
+                            fn (Builder $query, $code): Builder => $query->where('payment_code', 'like', '%' . $code . '%')
+                        );
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -162,6 +237,33 @@ class TransactionResource extends Resource
                     ->color('warning')
                     ->visible(fn (Transaction $record) => $record->payment_status === Transaction::STATUS_COMPLETED)
                     ->action(fn (Transaction $record) => $record->markAsRefunded()),
+                Tables\Actions\Action::make('viewPaymentCode')
+                    ->label('View Code')
+                    ->icon('heroicon-o-qr-code')
+                    ->color('gray')
+                    ->visible(fn (Transaction $record) => !empty($record->payment_code))
+                    ->modalHeading('Payment Code')
+                    ->modalDescription('Use this code to reference this transaction.')
+                    ->modalContent(fn (Transaction $record): string => view(
+                        'filament.resources.transaction-resource.payment-code-modal',
+                        ['code' => TransactionHelper::formatPaymentCode($record->payment_code)]
+                    )->render()),
+                Tables\Actions\Action::make('regeneratePaymentCode')
+                    ->label('Regenerate Code')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->modalHeading('Regenerate Payment Code')
+                    ->modalDescription('Are you sure you want to generate a new payment code? The old code will no longer be valid.')
+                    ->modalSubmitActionLabel('Yes, Regenerate')
+                    ->action(function (Transaction $record) {
+                        $record->generatePaymentCode();
+                        
+                        Notification::make()
+                            ->title('Payment code regenerated')
+                            ->success()
+                            ->send();
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
