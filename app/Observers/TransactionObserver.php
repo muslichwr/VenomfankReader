@@ -30,7 +30,10 @@ class TransactionObserver
      */
     public function created(Transaction $transaction): void
     {
-        //
+        // If transaction is created with 'completed' status, add coins to user
+        if ($transaction->payment_status === Transaction::STATUS_COMPLETED) {
+            $transaction->user->addCoins($transaction->coins_received);
+        }
     }
 
     /**
@@ -38,7 +41,21 @@ class TransactionObserver
      */
     public function updated(Transaction $transaction): void
     {
-        //
+        // Check if payment_status has changed
+        if ($transaction->isDirty('payment_status')) {
+            $originalStatus = $transaction->getOriginal('payment_status');
+            $currentStatus = $transaction->payment_status;
+            
+            // If status changed to 'completed' from something else, handle coins
+            if ($currentStatus === Transaction::STATUS_COMPLETED && $originalStatus !== Transaction::STATUS_COMPLETED) {
+                $transaction->user->addCoins($transaction->coins_received);
+            }
+            
+            // If status changed from 'completed' to 'refunded', handle coin removal
+            if ($currentStatus === Transaction::STATUS_REFUNDED && $originalStatus === Transaction::STATUS_COMPLETED) {
+                $transaction->user->subtractCoins($transaction->coins_received);
+            }
+        }
     }
 
     /**
