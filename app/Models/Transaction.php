@@ -13,9 +13,6 @@ class Transaction extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $keyType = 'string';
-    public $incrementing = false;
-
     // Payment status constants
     public const STATUS_PENDING = 'pending';
     public const STATUS_COMPLETED = 'completed';
@@ -50,9 +47,6 @@ class Transaction extends Model
 
         static::creating(function ($model) {
             // Generate UUID if not set
-            if (empty($model->{$model->getKeyName()})) {
-                $model->{$model->getKeyName()} = (string) Str::uuid();
-            }
             
             // Generate payment code if not set
             if (empty($model->payment_code)) {

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('category_series', function (Blueprint $table) {
             $table->id();
             $table->foreignId('category_id')->constrained()->cascadeOnDelete();
-            $table->foreignUuid('series_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('series_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
 
             // A series can only be in a category once

@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('coin_usages', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+            $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignUuid('chapter_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('chapter_id')->constrained()->cascadeOnDelete();
             $table->integer('coins_spent');
             $table->softDeletes();
             $table->timestamps();

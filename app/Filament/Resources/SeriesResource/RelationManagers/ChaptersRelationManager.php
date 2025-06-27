@@ -64,7 +64,7 @@ class ChaptersRelationManager extends RelationManager
                                     ->reorderable()
                                     ->directory(fn ($livewire) => 'series/' . $livewire->ownerRecord->id . '/chapters')
                                     ->columnSpanFull()
-                                    ->required(fn ($livewire) => $livewire->getOperation() === 'create')
+                                    ->required()
                                     ->helperText('Upload manga/manhwa/manhua images here. Images will be displayed in the order they are arranged.')
                                     ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                                     ->imagePreviewHeight('200')

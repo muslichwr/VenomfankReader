@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\SeriesType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -13,9 +14,6 @@ class Series extends Model
 {
     /** @use HasFactory<\Database\Factories\SeriesFactory> */
     use HasFactory, SoftDeletes;
-
-    protected $keyType = 'string';
-    public $incrementing = false;
 
     protected $fillable = [
         'title',
@@ -46,10 +44,6 @@ class Series extends Model
         parent::boot();
 
         static::creating(function ($model) {
-            if (empty($model->{$model->getKeyName()})) {
-                $model->{$model->getKeyName()} = (string) Str::uuid();
-            }
-            
             if (empty($model->slug)) {
                 $model->slug = (string) Str::uuid();
             }
@@ -69,7 +63,15 @@ class Series extends Model
      */
     public function chapters(): HasMany
     {
-        return $this->hasMany(Chapter::class)->orderBy('chapter_number');
+        return $this->hasMany(Chapter::class)->orderBy('chapter_number', 'desc');
+    }
+
+    /**
+     * Get the latest chapters for this series by created_at timestamp.
+     */
+    public function latestChaptersByDate(): HasMany
+    {
+        return $this->hasMany(Chapter::class)->orderBy('created_at', 'desc');
     }
 
     /**
@@ -119,6 +121,14 @@ class Series extends Model
     {
         return $this->chapters()->orderBy('chapter_number', 'desc')->first();
     }
+
+    /**
+     * Get the latest chapter of the series by date.
+     */
+    public function latestChapterByDate()
+    {
+        return $this->hasMany(Chapter::class)->orderBy('created_at', 'desc')->first();
+    }
     
     /**
      * Get the chapter count for this series.
@@ -161,5 +171,13 @@ class Series extends Model
             ->orderBy('views_count', 'desc')
             ->limit($limit)
             ->get();
+    }
+
+    public function setTypeAttribute($value)
+    {
+        if (!in_array($value, SeriesType::all())) {
+            throw new \InvalidArgumentException("Invalid series type");
+        }
+        $this->attributes['type'] = $value;
     }
 }

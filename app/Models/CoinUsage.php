@@ -12,9 +12,6 @@ class CoinUsage extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $keyType = 'string';
-    public $incrementing = false;
-
     protected $fillable = [
         'user_id',
         'chapter_id',
@@ -28,17 +25,6 @@ class CoinUsage extends Model
     /**
      * Boot function from Laravel.
      */
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($model) {
-            if (empty($model->{$model->getKeyName()})) {
-                $model->{$model->getKeyName()} = (string) Str::uuid();
-            }
-        });
-    }
-
     /**
      * Get the user that owns the coin usage.
      */

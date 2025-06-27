@@ -12,9 +12,6 @@ class Chapter extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $keyType = 'string';
-    public $incrementing = false;
-
     protected $fillable = [
         'series_id',
         'title',
@@ -41,9 +38,6 @@ class Chapter extends Model
         parent::boot();
 
         static::creating(function ($model) {
-            if (empty($model->{$model->getKeyName()})) {
-                $model->{$model->getKeyName()} = (string) Str::uuid();
-            }
             
             if (empty($model->slug)) {
                 $model->slug = (string) Str::uuid();

@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('chapters', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('series_id')->constrained()->cascadeOnDelete();
+            $table->id();
+            $table->foreignId('series_id')->constrained()->cascadeOnDelete();
             $table->string('title');
             $table->string('slug')->unique();
             $table->integer('chapter_number');

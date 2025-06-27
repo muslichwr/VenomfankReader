@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('reading_histories', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignUuid('series_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignUuid('chapter_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('series_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('chapter_id')->nullable()->constrained()->nullOnDelete();
             $table->timestamp('last_read_at');
             $table->integer('progress_percentage')->default(0); // For continuing reading from a specific position
             $table->softDeletes();
