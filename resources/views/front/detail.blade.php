@@ -18,63 +18,7 @@
 </head>
 <body class="no-footer-layout">
     <!-- Navigation -->
-    <header class="main-header" id="main-header">
-        <nav class="bg-transparent">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center header-content">
-                    <div class="flex items-center space-x-8">
-                        <a href="{{ route('front.homepage') }}" class="text-2xl font-bold text-accent-500">
-                            <i class="fas fa-book-open mr-2"></i>Venomfank
-                        </a>
-                        <div class="hidden md:flex space-x-6">
-                            <a href="{{ route('front.homepage') }}" class="nav-link"><i class="fas fa-compass mr-1"></i> Browse</a>
-                            <a href="{{ route('front.homepage', ['type' => 'popular']) }}" class="nav-link"><i class="fas fa-fire mr-1"></i> Popular</a>
-                            <a href="{{ route('front.homepage', ['type' => 'latest']) }}" class="nav-link"><i class="fas fa-clock mr-1"></i> Latest</a>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <div class="relative">
-                            <input type="text" placeholder="Search series..." class="input-field w-64 pr-10">
-                            <svg class="absolute right-3 top-3.5 h-5 w-5 text-dark-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                            </svg>
-                        </div>
-                        <div class="hidden sm:flex items-center space-x-2">
-                            <span class="coin-badge">250</span>
-                        </div>
-                        @auth
-                            <a href="{{ url('/dashboard') }}" class="btn-primary hidden sm:inline-block"><i class="fas fa-user mr-1"></i> Dashboard</a>
-                        @else
-                            <a href="{{ route('login') }}" class="nav-link hidden sm:inline-block"><i class="fas fa-sign-in-alt mr-1"></i> Login</a>
-                            <a href="{{ route('register') }}" class="btn-primary hidden sm:inline-block"><i class="fas fa-user-plus mr-1"></i> Register</a>
-                        @endauth
-                        <button class="md:hidden p-2 rounded-md bg-dark-700 hover:bg-dark-600 transition-colors" id="mobile-menu-button">
-                            <i class="fas fa-bars text-dark-200"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Mobile Menu -->
-                <div class="md:hidden hidden" id="mobile-menu">
-                    <div class="px-2 pt-2 pb-3 space-y-1 border-t border-dark-700 mt-2">
-                        <a href="{{ route('front.homepage') }}" class="block px-3 py-2 rounded-md text-base font-medium nav-link"><i class="fas fa-compass mr-1"></i> Browse</a>
-                        <a href="{{ route('front.homepage', ['type' => 'popular']) }}" class="block px-3 py-2 rounded-md text-base font-medium nav-link"><i class="fas fa-fire mr-1"></i> Popular</a>
-                        <a href="{{ route('front.homepage', ['type' => 'latest']) }}" class="block px-3 py-2 rounded-md text-base font-medium nav-link"><i class="fas fa-clock mr-1"></i> Latest</a>
-                        @auth
-                            <a href="{{ url('/dashboard') }}" class="block px-3 py-2 rounded-md text-base font-medium nav-link"><i class="fas fa-user mr-1"></i> Dashboard</a>
-                        @else
-                            <a href="{{ route('login') }}" class="block px-3 py-2 rounded-md text-base font-medium nav-link"><i class="fas fa-sign-in-alt mr-1"></i> Login</a>
-                            <a href="{{ route('register') }}" class="block px-3 py-2 rounded-md text-base font-medium nav-link"><i class="fas fa-user-plus mr-1"></i> Register</a>
-                        @endauth
-                        <div class="px-3 py-2 flex items-center">
-                            <span class="text-dark-300 mr-2">Coins:</span>
-                            <span class="coin-badge">250</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </nav>
-    </header>
+    <x-navigation-auth />
 
     <!-- Header Spacer -->
     <div class="header-spacer"></div>
@@ -252,6 +196,7 @@
     <script src="{{ asset('js/navigation.js') }}"></script>
     <script src="{{ asset('js/filters.js') }}"></script>
     <script src="{{ asset('js/chapters.js') }}"></script>
+    <script src="{{ asset('js/header-dropdown.js') }}"></script>
     
     <script>
         // Initialize AOS

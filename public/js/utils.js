@@ -80,108 +80,108 @@ window.VenomfankUtils = {
 /**
  * Coin system utilities
  */
-const CoinSystem = {
-    /**
-     * Get user's coin balance
-     * @returns {number} Current coin balance
-     */
-    getBalance() {
-        // In a real app, this would come from a server
-        return parseInt(localStorage.getItem('userCoins') || '250');
-    },
+// const CoinSystem = {
+//     /**
+//      * Get user's coin balance
+//      * @returns {number} Current coin balance
+//      */
+//     getBalance() {
+//         // In a real app, this would come from a server
+//         return parseInt(localStorage.getItem('userCoins') || '250');
+//     },
     
-    /**
-     * Update user's coin balance
-     * @param {number} amount - Amount to add (positive) or subtract (negative)
-     * @returns {number} New balance
-     */
-    updateBalance(amount) {
-        const currentBalance = this.getBalance();
-        const newBalance = currentBalance + amount;
+//     /**
+//      * Update user's coin balance
+//      * @param {number} amount - Amount to add (positive) or subtract (negative)
+//      * @returns {number} New balance
+//      */
+//     updateBalance(amount) {
+//         const currentBalance = this.getBalance();
+//         const newBalance = currentBalance + amount;
         
-        // Don't allow negative balance
-        if (newBalance < 0) return currentBalance;
+//         // Don't allow negative balance
+//         if (newBalance < 0) return currentBalance;
         
-        // Update storage
-        localStorage.setItem('userCoins', newBalance.toString());
+//         // Update storage
+//         localStorage.setItem('userCoins', newBalance.toString());
         
-        // Update UI if needed
-        this.updateUI();
+//         // Update UI if needed
+//         this.updateUI();
         
-        return newBalance;
-    },
+//         return newBalance;
+//     },
     
-    /**
-     * Check if user can afford a purchase
-     * @param {number} cost - Cost in coins
-     * @returns {boolean} True if affordable
-     */
-    canAfford(cost) {
-        return this.getBalance() >= cost;
-    },
+//     /**
+//      * Check if user can afford a purchase
+//      * @param {number} cost - Cost in coins
+//      * @returns {boolean} True if affordable
+//      */
+//     canAfford(cost) {
+//         return this.getBalance() >= cost;
+//     },
     
-    /**
-     * Make a purchase with coins
-     * @param {number} cost - Cost in coins
-     * @returns {boolean} True if purchase successful
-     */
-    purchase(cost) {
-        if (!this.canAfford(cost)) return false;
+//     /**
+//      * Make a purchase with coins
+//      * @param {number} cost - Cost in coins
+//      * @returns {boolean} True if purchase successful
+//      */
+//     purchase(cost) {
+//         if (!this.canAfford(cost)) return false;
         
-        this.updateBalance(-cost);
-        return true;
-    },
+//         this.updateBalance(-cost);
+//         return true;
+//     },
     
-    /**
-     * Update UI elements showing coin balance
-     */
-    updateUI() {
-        const balance = this.getBalance();
-        document.querySelectorAll('.coin-badge').forEach(badge => {
-            badge.textContent = balance;
-        });
-    },
+//     /**
+//      * Update UI elements showing coin balance
+//      */
+//     updateUI() {
+//         const balance = this.getBalance();
+//         document.querySelectorAll('.coin-badge').forEach(badge => {
+//             badge.textContent = balance;
+//         });
+//     },
     
-    /**
-     * Initialize coin system
-     */
-    init() {
-        // Update UI on load
-        this.updateUI();
+//     /**
+//      * Initialize coin system
+//      */
+//     init() {
+//         // Update UI on load
+//         this.updateUI();
         
-        // Add event listeners for coin purchases and unlocks
-        document.addEventListener('click', e => {
-            // Check if clicking on a locked chapter
-            if (e.target.closest('.chapter-lock')) {
-                const chapterElement = e.target.closest('a');
-                const costElement = chapterElement.querySelector('.chapter-lock');
+//         // Add event listeners for coin purchases and unlocks
+//         document.addEventListener('click', e => {
+//             // Check if clicking on a locked chapter
+//             if (e.target.closest('.chapter-lock')) {
+//                 const chapterElement = e.target.closest('a');
+//                 const costElement = chapterElement.querySelector('.chapter-lock');
                 
-                if (costElement) {
-                    const cost = parseInt(costElement.textContent);
-                    this.handleChapterUnlock(chapterElement, cost);
-                }
-            }
-        });
-    },
+//                 if (costElement) {
+//                     const cost = parseInt(costElement.textContent);
+//                     this.handleChapterUnlock(chapterElement, cost);
+//                 }
+//             }
+//         });
+//     },
     
-    /**
-     * Handle chapter unlock attempt
-     * @param {Element} chapterElement - The chapter element
-     * @param {number} cost - Cost in coins
-     */
-    handleChapterUnlock(chapterElement, cost) {
-        // In a real app, this would show a confirmation dialog
-        if (confirm(`Unlock this chapter for ${cost} coins?`)) {
-            if (this.purchase(cost)) {
-                // Success - redirect to chapter
-                window.location.href = chapterElement.href;
-            } else {
-                // Not enough coins
-                alert('Not enough coins! Please purchase more coins to unlock this chapter.');
-            }
-        }
-    }
-};
+//     /**
+//      * Handle chapter unlock attempt
+//      * @param {Element} chapterElement - The chapter element
+//      * @param {number} cost - Cost in coins
+//      */
+//     handleChapterUnlock(chapterElement, cost) {
+//         // In a real app, this would show a confirmation dialog
+//         if (confirm(`Unlock this chapter for ${cost} coins?`)) {
+//             if (this.purchase(cost)) {
+//                 // Success - redirect to chapter
+//                 window.location.href = chapterElement.href;
+//             } else {
+//                 // Not enough coins
+//                 alert('Not enough coins! Please purchase more coins to unlock this chapter.');
+//             }
+//         }
+//     }
+// };
 
 /**
  * Date/time formatting utilities
@@ -274,5 +274,5 @@ const Utils = {
 // Initialize modules on DOM content loaded
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize coin system
-    CoinSystem.init();
+    // CoinSystem.init();
 }); 
