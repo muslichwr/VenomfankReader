@@ -27,15 +27,18 @@ class Transaction extends Model
         'user_id',
         'coin_package_id',
         'coins_received',
-        'amount_paid',
         'payment_status',
         'payment_method',
         'payment_code',
+        'booking_trx_id',
+        'sub_total_amount',
+        'grand_total_amount',
+        'total_tax_amount',
+        'is_paid'
     ];
 
     protected $casts = [
         'coins_received' => 'integer',
-        'amount_paid' => 'decimal:2',
     ];
 
     /**
