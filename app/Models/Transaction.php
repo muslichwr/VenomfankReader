@@ -34,11 +34,15 @@ class Transaction extends Model
         'sub_total_amount',
         'grand_total_amount',
         'total_tax_amount',
-        'is_paid'
+        'is_paid',
+        'is_coins_added'
     ];
 
     protected $casts = [
         'coins_received' => 'integer',
+        'payment_status' => 'string',
+        'is_paid' => 'boolean',
+        'is_coins_added' => 'boolean',
     ];
 
     /**

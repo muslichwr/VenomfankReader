@@ -9,6 +9,10 @@ use App\Repository\SeriesRepositoryInterface;
 use App\Repository\SeriesRepository;
 use App\Repository\ChapterRepositoryInterface;
 use App\Repository\ChapterRepository;
+use App\Repository\CoinPackageRepositoryInterface;
+use App\Repository\CoinPackageRepository;
+use App\Repository\TransactionRepositoryInterface;
+use App\Repository\TransactionRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,6 +24,8 @@ class AppServiceProvider extends ServiceProvider
         //
         $this->app->bind(SeriesRepositoryInterface::class, SeriesRepository::class);
         $this->app->bind(ChapterRepositoryInterface::class, ChapterRepository::class);
+        $this->app->bind(CoinPackageRepositoryInterface::class, CoinPackageRepository::class);
+        $this->app->bind(TransactionRepositoryInterface::class, TransactionRepository::class);
     }
 
     /**

@@ -22,6 +22,7 @@
                     <div class="hidden sm:flex items-center space-x-2">
                         @auth
                             <span class="coin-badge">{{ Auth::user()->coin_balance }}</span>
+                            <a href="{{ route('front.pricing') }}" class="btn-primary">Buy Coin</a>
                         @else
                             <span class="coin-badge">0</span>
                         @endauth
