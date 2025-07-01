@@ -16,6 +16,11 @@ class SeriesService
 
     public function getPaginatedSeries(array $filters = [], int $perPage = 10)
     {
+        // If no specific sort is requested, default to latest chapter updates
+        if (!isset($filters['sort_by'])) {
+            $filters['sort_by'] = 'latest';
+        }
+        
         return $this->seriesRepo->getAllWithLatestChapter($filters, $perPage);
     }
 

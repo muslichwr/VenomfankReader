@@ -190,58 +190,75 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center mb-8">
                 <h2 class="text-3xl font-bold">Latest Updates</h2>
-                <a href="{{ route('front.homepage', ['type' => 'latest']) }}" class="text-accent-500 hover:text-accent-400 transition-colors">View all <i class="fas fa-arrow-right ml-1"></i></a>
+                <div class="flex items-center space-x-4">
+                    <div class="hidden sm:flex items-center">
+                        <label for="series-sort" class="text-sm text-dark-400 mr-2">Sort by:</label>
+                        <select id="series-sort" class="input-field py-1 px-3 text-sm" onchange="window.location.href='{{ route('front.homepage') }}?sort=' + this.value + '{{ $activeTab ? '&type=' . $activeTab : '' }}'">
+                            <option value="latest" {{ request()->query('sort') === 'latest' || !request()->has('sort') ? 'selected' : '' }}>Latest Updates</option>
+                            <option value="views" {{ request()->query('sort') === 'views' ? 'selected' : '' }}>Most Popular</option>
+                            <option value="newest" {{ request()->query('sort') === 'newest' ? 'selected' : '' }}>Recently Added</option>
+                        </select>
+                    </div>
+                    <a href="{{ route('front.homepage', ['type' => 'latest']) }}" class="text-accent-500 hover:text-accent-400 transition-colors">
+                        View all <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
             </div>
             <div class="space-y-4">
                 @forelse($series as $item)
                 <div class="flex items-start space-x-4 p-4 bg-dark-700 rounded-lg hover:bg-dark-600 transition-colors cursor-pointer" onclick="window.location.href='{{ route('front.detail', $item->slug) }}'">
-                    <div class="w-16 h-20 rounded overflow-hidden">
+                    <div class="w-16 h-20 sm:w-20 sm:h-28 rounded overflow-hidden flex-shrink-0">
                         @if($item->cover_image)
                             <img src="{{ Storage::url($item->cover_image) }}" alt="{{ $item->title }}" class="w-full h-full object-cover">
                         @else
                             <img src="https://picsum.photos/id/{{ 200 + $loop->index }}/100/130" alt="{{ $item->title }}" class="w-full h-full object-cover">
                         @endif
                     </div>
-                    <div class="flex-1">
-                        <div class="flex justify-between">
-                            <h3 class="font-semibold">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex flex-wrap justify-between items-start gap-2">
+                            <h3 class="font-semibold text-base sm:text-lg truncate max-w-full sm:max-w-[70%]">
                                 <a href="{{ route('front.detail', $item->slug) }}" class="hover:text-accent-500 transition-colors">
                                     {{ $item->title }}
                                 </a>
                             </h3>
-                            <span class="text-xs bg-accent-500 text-white px-2 py-1 rounded">{{ ucfirst($item->type) }}</span>
+                            <span class="text-xs bg-accent-500 text-white px-2 py-1 rounded flex-shrink-0">{{ ucfirst($item->type) }}</span>
                         </div>
-                        <div class="flex items-center mt-1 mb-2">
-                            <span class="text-xs text-dark-400 mr-2"><i class="far fa-clock mr-1"></i>{{ $item->updated_at->diffForHumans() }}</span>
-                            <span class="text-xs text-dark-400"><i class="far fa-eye mr-1"></i>{{ number_format($item->views_count) }} views</span>
+                        <div class="flex flex-wrap items-center mt-1 mb-2 text-xs sm:text-sm gap-x-4 gap-y-1">
+                            <span class="text-dark-400">
+                                <i class="far fa-clock mr-1"></i>Updated {{ $item->latest_chapter_date ? \Carbon\Carbon::parse($item->latest_chapter_date)->diffForHumans() : 'N/A' }}
+                            </span>
+                            <span class="text-dark-400">
+                                <i class="far fa-eye mr-1"></i>{{ number_format($item->views_count) }} views
+                            </span>
+                            <span class="text-dark-400">
+                                <i class="far fa-bookmark mr-1"></i>{{ $item->chapters_count }} chapters
+                            </span>
                         </div>
-                        <div class="space-y-1 mt-2 chapter-list">
-                            @php
-                                // Get the 5 most recent chapters by chapter number
-                                $latestChapters = $item->chapters()->orderBy('chapter_number', 'desc')->take(5)->get();
-                            @endphp
-                            
-                            @forelse($latestChapters as $chapter)
-                            <div class="flex justify-between items-center">
-                                <a href="{{ route('front.chapter', $chapter->slug) }}" class="text-xs text-dark-300 hover:text-accent-500 transition-colors">
-                                    Chapter {{ $chapter->chapter_number }} - {{ $chapter->title }}
-                                </a>
-                                <div class="flex items-center">
-                                    @if(!$chapter->is_free)
-                                    <span class="chapter-lock mr-1" title="{{ $chapter->coin_cost }} coins required">{{ $chapter->coin_cost }}</span>
-                                    @endif
-                                    @if($loop->first)
-                                    <span class="text-xs text-accent-500">New</span>
-                                    @else
-                                    <span class="text-xs text-dark-400">{{ $chapter->created_at->diffForHumans() }}</span>
-                                    @endif
+                        <div class="space-y-1 mt-3 chapter-list">
+                            @if($item->chapters->isNotEmpty())
+                                @foreach($item->chapters as $chapter)
+                                <div class="flex justify-between items-center">
+                                    <a href="{{ route('front.chapter', $chapter->slug) }}" class="text-xs sm:text-sm text-dark-300 hover:text-accent-500 transition-colors truncate max-w-[70%]">
+                                        Chapter {{ $chapter->chapter_number }}: {{ $chapter->title }}
+                                    </a>
+                                    <div class="flex items-center space-x-2">
+                                        @if(!$chapter->is_free)
+                                        <span class="chapter-lock flex-shrink-0" title="{{ $chapter->coin_cost }} coins required">
+                                            <i class="fas fa-coins text-warning text-xs"></i>
+                                            <span class="text-xs text-warning">{{ $chapter->coin_cost }}</span>
+                                        </span>
+                                        @endif
+                                        <span class="text-xs {{ $loop->first ? 'text-accent-500' : 'text-dark-400' }} flex-shrink-0">
+                                            {{ $chapter->created_at->diffForHumans() }}
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                            @empty
+                                @endforeach
+                            @else
                             <div class="flex justify-center items-center py-2">
                                 <span class="text-xs text-dark-400">No chapters available</span>
                             </div>
-                            @endforelse
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -254,7 +271,7 @@
             
             @if($series->hasPages())
             <div class="mt-8 flex justify-center">
-                {{ $series->links() }}
+                {{ $series->appends(request()->query())->links() }}
             </div>
             @endif
         </div>

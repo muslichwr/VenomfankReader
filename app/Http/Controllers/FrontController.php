@@ -21,6 +21,12 @@ class FrontController extends Controller
     public function homepage(Request $request): View
     {
         $type = $request->query('type');
+        $sort = $request->query('sort', 'latest');
+        
+        // Validate sort parameter
+        if (!in_array($sort, ['latest', 'views', 'newest', 'oldest'])) {
+            $sort = 'latest';
+        }
         
         $filters = match($type) {
             'featured' => ['is_featured' => true],
@@ -30,8 +36,13 @@ class FrontController extends Controller
             'manhwa' => ['type' => 'manhwa'],
             'manhua' => ['type' => 'manhua'],
             'latest' => ['sort_by' => 'latest'],
-            default => []
+            default => ['sort_by' => $sort] // Use the requested sort
         };
+        
+        // Ensure sort_by is always set
+        if (!isset($filters['sort_by'])) {
+            $filters['sort_by'] = $sort;
+        }
 
         $series = $this->seriesService->getPaginatedSeries($filters);
         $featuredSeries = $this->seriesService->getFeaturedSeries(5);
